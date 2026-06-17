@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import random
+import textwrap
 
 # Page Configuration
 st.set_page_config(
@@ -12,7 +13,7 @@ st.set_page_config(
 
 # --- Custom CSS for Styling ---
 st.markdown(
-    """
+    textwrap.dedent("""
     <style>
     /* Styling for Streamlit layout */
     .stApp {
@@ -144,7 +145,7 @@ st.markdown(
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.01);
     }
     </style>
-    """,
+    """),
     unsafe_allow_html=True
 )
 
@@ -360,7 +361,7 @@ elif st.session_state.screen == "learn":
         theme_html = f'<span class="theme-badge">{current_word.get("theme", "General")}</span>' if current_word.get("theme") else ''
         
         st.markdown(
-            f"""
+            textwrap.dedent(f"""
             <div class="flashcard-box">
                 <div>
                     {part_of_speech_html}
@@ -369,7 +370,7 @@ elif st.session_state.screen == "learn":
                 <div class="word-text">{current_word["word"]}</div>
                 <div style="height: 40px;"></div>
             </div>
-            """,
+            """),
             unsafe_allow_html=True
         )
         
@@ -400,7 +401,7 @@ elif st.session_state.screen == "learn":
             """
             
         st.markdown(
-            f"""
+            textwrap.dedent(f"""
             <div class="flashcard-box">
                 <div>
                     {part_of_speech_html}
@@ -411,7 +412,7 @@ elif st.session_state.screen == "learn":
                 {collocation_html}
                 {example_html}
             </div>
-            """,
+            """),
             unsafe_allow_html=True
         )
         
@@ -468,7 +469,7 @@ elif st.session_state.screen == "result":
     
     # Animated score representation
     st.markdown(
-        f"""
+        textwrap.dedent(f"""
         <div class="score-circle">
             <div class="score-value">{accuracy}%</div>
             <div class="score-label">Accuracy</div>
@@ -476,7 +477,7 @@ elif st.session_state.screen == "result":
         <p style="text-align: center; font-weight: bold; font-size: 1.1rem; color: #1a202c; margin-bottom: 2rem;">
             {total}問中 {correct}問 正解
         </p>
-        """,
+        """),
         unsafe_allow_html=True
     )
     
@@ -500,7 +501,7 @@ elif st.session_state.screen == "result":
             part_of_speech_badge = f'<span style="background-color: #fee2e2; color: #991b1b; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: bold; margin-left: 0.5rem;">{w.get("part_of_speech", "")}</span>' if w.get("part_of_speech") else ''
             
             st.markdown(
-                f"""
+                textwrap.dedent(f"""
                 <div class="failed-item">
                     <div style="display: flex; align-items: center; justify-content: space-between;">
                         <span style="font-weight: 800; font-size: 1.1rem; color: #1e293b;">{w["word"]}</span>
@@ -509,7 +510,7 @@ elif st.session_state.screen == "result":
                     <div style="font-size: 0.9rem; color: #004a23; font-weight: 700; margin-top: 0.25rem;">{w["meaning"]}</div>
                     {f'<div style="font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 0.4rem;">{w["example_sentence"]}</div>' if w.get("example_sentence") else ''}
                 </div>
-                """,
+                """),
                 unsafe_allow_html=True
             )
     else:
