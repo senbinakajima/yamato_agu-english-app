@@ -388,13 +388,7 @@ f"""<div class="flashcard-box">
             
         example_html = ''
         if current_word.get("example_sentence"):
-            example_html = f"""
-            <div class="example-box">
-                <div class="example-label">Example Sentence</div>
-                <div class="example-sentence">{current_word["example_sentence"]}</div>
-                <div class="example-translation">{current_word.get("japanese_translation", "")}</div>
-            </div>
-            """
+            example_html = f'<div class="example-box"><div class="example-label">Example Sentence</div><div class="example-sentence">{current_word["example_sentence"]}</div><div class="example-translation">{current_word.get("japanese_translation", "")}</div></div>'
             
         st.markdown(
 f"""<div class="flashcard-box">
