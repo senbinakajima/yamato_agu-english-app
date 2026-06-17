@@ -13,139 +13,137 @@ st.set_page_config(
 
 # --- Custom CSS for Styling ---
 st.markdown(
-    textwrap.dedent("""
-    <style>
-    /* Styling for Streamlit layout */
-    .stApp {
-        background-color: #f4f6f3;
-    }
-    .main-header {
-        font-family: 'sans serif';
-        color: #004a23;
-        font-weight: 800;
-        text-align: center;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 0.9rem;
-        color: #64748b;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .flashcard-box {
-        background-color: white;
-        border: 1px solid rgba(0, 74, 35, 0.1);
-        border-radius: 1.5rem;
-        padding: 2.5rem 1.5rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
-        margin-bottom: 2rem;
-        text-align: center;
-        min-height: 280px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    .word-text {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #1a202c;
-        margin-bottom: 0.5rem;
-        word-break: break-all;
-    }
-    .pos-badge {
-        background-color: rgba(0, 74, 35, 0.1);
-        color: #004a23;
-        padding: 0.3rem 0.9rem;
-        border-radius: 0.5rem;
-        font-size: 0.85rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        display: inline-block;
-    }
-    .theme-badge {
-        background-color: #f1f5f9;
-        color: #475569;
-        padding: 0.2rem 0.6rem;
-        border-radius: 0.35rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        display: inline-block;
-        margin-left: 0.5rem;
-    }
-    .meaning-text {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #004a23;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-    }
-    .example-box {
-        background-color: #fdfefe;
-        border-left: 4px solid #004a23;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        text-align: left;
-        margin-top: 1.5rem;
-        width: 100%;
-        border-top: 1px solid #f1f5f9;
-        border-right: 1px solid #f1f5f9;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .example-label {
-        font-size: 0.75rem;
-        color: #94a3b8;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-bottom: 0.25rem;
-    }
-    .example-sentence {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #334155;
-        line-height: 1.4;
-    }
-    .example-translation {
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-top: 0.25rem;
-    }
-    .score-circle {
-        background-color: #e6f0ea;
-        color: #004a23;
-        border-radius: 50%;
-        width: 120px;
-        height: 120px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin: 1.5rem auto;
-        box-shadow: 0 4px 10px rgba(0, 74, 35, 0.05);
-    }
-    .score-value {
-        font-size: 2.2rem;
-        font-weight: 900;
-        line-height: 1;
-    }
-    .score-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .failed-item {
-        background-color: white;
-        border: 1px solid #fee2e2;
-        border-radius: 1rem;
-        padding: 1rem;
-        margin-bottom: 0.5rem;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.01);
-    }
-    </style>
-    """),
+"""<style>
+/* Styling for Streamlit layout */
+.stApp {
+background-color: #f4f6f3;
+}
+.main-header {
+font-family: 'sans serif';
+color: #004a23;
+font-weight: 800;
+text-align: center;
+margin-top: 1rem;
+margin-bottom: 0.5rem;
+}
+.sub-header {
+font-size: 0.9rem;
+color: #64748b;
+text-align: center;
+margin-bottom: 2rem;
+}
+.flashcard-box {
+background-color: white;
+border: 1px solid rgba(0, 74, 35, 0.1);
+border-radius: 1.5rem;
+padding: 2.5rem 1.5rem;
+box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+margin-bottom: 2rem;
+text-align: center;
+min-height: 280px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+.word-text {
+font-size: 2.8rem;
+font-weight: 800;
+color: #1a202c;
+margin-bottom: 0.5rem;
+word-break: break-all;
+}
+.pos-badge {
+background-color: rgba(0, 74, 35, 0.1);
+color: #004a23;
+padding: 0.3rem 0.9rem;
+border-radius: 0.5rem;
+font-size: 0.85rem;
+font-weight: 700;
+margin-bottom: 1.5rem;
+display: inline-block;
+}
+.theme-badge {
+background-color: #f1f5f9;
+color: #475569;
+padding: 0.2rem 0.6rem;
+border-radius: 0.35rem;
+font-size: 0.75rem;
+font-weight: 600;
+margin-bottom: 1.5rem;
+display: inline-block;
+margin-left: 0.5rem;
+}
+.meaning-text {
+font-size: 1.6rem;
+font-weight: 700;
+color: #004a23;
+margin-top: 1rem;
+margin-bottom: 1rem;
+}
+.example-box {
+background-color: #fdfefe;
+border-left: 4px solid #004a23;
+padding: 1rem;
+border-radius: 0.5rem;
+text-align: left;
+margin-top: 1.5rem;
+width: 100%;
+border-top: 1px solid #f1f5f9;
+border-right: 1px solid #f1f5f9;
+border-bottom: 1px solid #f1f5f9;
+}
+.example-label {
+font-size: 0.75rem;
+color: #94a3b8;
+font-weight: 700;
+text-transform: uppercase;
+margin-bottom: 0.25rem;
+}
+.example-sentence {
+font-size: 0.95rem;
+font-weight: 600;
+color: #334155;
+line-height: 1.4;
+}
+.example-translation {
+font-size: 0.85rem;
+color: #64748b;
+margin-top: 0.25rem;
+}
+.score-circle {
+background-color: #e6f0ea;
+color: #004a23;
+border-radius: 50%;
+width: 120px;
+height: 120px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+margin: 1.5rem auto;
+box-shadow: 0 4px 10px rgba(0, 74, 35, 0.05);
+}
+.score-value {
+font-size: 2.2rem;
+font-weight: 900;
+line-height: 1;
+}
+.score-label {
+font-size: 0.7rem;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+.failed-item {
+background-color: white;
+border: 1px solid #fee2e2;
+border-radius: 1rem;
+padding: 1rem;
+margin-bottom: 0.5rem;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.01);
+}
+</style>""",
     unsafe_allow_html=True
 )
 
@@ -361,16 +359,14 @@ elif st.session_state.screen == "learn":
         theme_html = f'<span class="theme-badge">{current_word.get("theme", "General")}</span>' if current_word.get("theme") else ''
         
         st.markdown(
-            textwrap.dedent(f"""
-            <div class="flashcard-box">
-                <div>
-                    {part_of_speech_html}
-                    {theme_html}
-                </div>
-                <div class="word-text">{current_word["word"]}</div>
-                <div style="height: 40px;"></div>
-            </div>
-            """),
+f"""<div class="flashcard-box">
+<div>
+{part_of_speech_html}
+{theme_html}
+</div>
+<div class="word-text">{current_word["word"]}</div>
+<div style="height: 40px;"></div>
+</div>""",
             unsafe_allow_html=True
         )
         
@@ -401,18 +397,16 @@ elif st.session_state.screen == "learn":
             """
             
         st.markdown(
-            textwrap.dedent(f"""
-            <div class="flashcard-box">
-                <div>
-                    {part_of_speech_html}
-                    {theme_html}
-                </div>
-                <div style="font-size: 1.1rem; font-weight: bold; color: #64748b; margin-bottom: 0.2rem;">{current_word["word"]}</div>
-                <div class="meaning-text">{current_word["meaning"]}</div>
-                {collocation_html}
-                {example_html}
-            </div>
-            """),
+f"""<div class="flashcard-box">
+<div>
+{part_of_speech_html}
+{theme_html}
+</div>
+<div style="font-size: 1.1rem; font-weight: bold; color: #64748b; margin-bottom: 0.2rem;">{current_word["word"]}</div>
+<div class="meaning-text">{current_word["meaning"]}</div>
+{collocation_html}
+{example_html}
+</div>""",
             unsafe_allow_html=True
         )
         
@@ -469,15 +463,13 @@ elif st.session_state.screen == "result":
     
     # Animated score representation
     st.markdown(
-        textwrap.dedent(f"""
-        <div class="score-circle">
-            <div class="score-value">{accuracy}%</div>
-            <div class="score-label">Accuracy</div>
-        </div>
-        <p style="text-align: center; font-weight: bold; font-size: 1.1rem; color: #1a202c; margin-bottom: 2rem;">
-            {total}問中 {correct}問 正解
-        </p>
-        """),
+f"""<div class="score-circle">
+<div class="score-value">{accuracy}%</div>
+<div class="score-label">Accuracy</div>
+</div>
+<p style="text-align: center; font-weight: bold; font-size: 1.1rem; color: #1a202c; margin-bottom: 2rem;">
+{total}問中 {correct}問 正解
+</p>""",
         unsafe_allow_html=True
     )
     
@@ -501,16 +493,14 @@ elif st.session_state.screen == "result":
             part_of_speech_badge = f'<span style="background-color: #fee2e2; color: #991b1b; padding: 0.15rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: bold; margin-left: 0.5rem;">{w.get("part_of_speech", "")}</span>' if w.get("part_of_speech") else ''
             
             st.markdown(
-                textwrap.dedent(f"""
-                <div class="failed-item">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-weight: 800; font-size: 1.1rem; color: #1e293b;">{w["word"]}</span>
-                        <span>{part_of_speech_badge}</span>
-                    </div>
-                    <div style="font-size: 0.9rem; color: #004a23; font-weight: 700; margin-top: 0.25rem;">{w["meaning"]}</div>
-                    {f'<div style="font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 0.4rem;">{w["example_sentence"]}</div>' if w.get("example_sentence") else ''}
-                </div>
-                """),
+f"""<div class="failed-item">
+<div style="display: flex; align-items: center; justify-content: space-between;">
+<span style="font-weight: 800; font-size: 1.1rem; color: #1e293b;">{w["word"]}</span>
+<span>{part_of_speech_badge}</span>
+</div>
+<div style="font-size: 0.9rem; color: #004a23; font-weight: 700; margin-top: 0.25rem;">{w["meaning"]}</div>
+{f'<div style="font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 0.4rem;">{w["example_sentence"]}</div>' if w.get("example_sentence") else ''}
+</div>""",
                 unsafe_allow_html=True
             )
     else:
