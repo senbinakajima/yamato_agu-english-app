@@ -300,6 +300,10 @@ if st.session_state.screen == "start":
         st.warning("Notion API 認証情報が st.secrets に見つかりません。オフライン（words.json）モードで起動します。 📁")
         st.session_state.api_mode = False
         
+    # Render Last Error if exists
+    if "last_error" in st.session_state and st.session_state.last_error:
+        st.error(st.session_state.last_error)
+        
     st.write("")
     
     # Start button (Centered layout)
@@ -308,30 +312,41 @@ if st.session_state.screen == "start":
         if st.button("学習スタート (10問)", use_container_width=True, type="primary"):
             # Load words
             words_pool = []
+            error_occurred = False
             if st.session_state.api_mode:
                 with st.spinner("Notionから単語を取得中..."):
                     try:
                         words_pool = fetch_words_from_notion(api_key, database_id)
                         if not words_pool:
-                            st.error("Notionデータベースが空であるか、正しく読み込めませんでした。ローカルデータを使用します。")
-                            words_pool = fetch_fallback_words()
-                            st.session_state.api_mode = False
+                            st.session_state.last_error = "Notionデータベースが空であるか、正しく読み込めませんでした。"
+                            error_occurred = True
                     except Exception as e:
-                        st.error(f"Notion接続エラー: {e}。ローカルデータにフォールバックします。")
-                        words_pool = fetch_fallback_words()
-                        st.session_state.api_mode = False
+                        error_detail = str(e)
+                        if hasattr(e, 'response') and e.response is not None:
+                            try:
+                                error_detail += f"\nResponse Body: {e.response.text}"
+                            except Exception:
+                                pass
+                        st.session_state.last_error = f"Notion接続エラー:\n{error_detail}"
+                        error_occurred = True
             else:
                 words_pool = fetch_fallback_words()
             
-            # Shuffle and select 10 words
-            random.shuffle(words_pool)
-            st.session_state.session_words = words_pool[:10]
-            st.session_state.current_index = 0
-            st.session_state.correct_count = 0
-            st.session_state.incorrect_words = []
-            st.session_state.show_answer = False
-            st.session_state.screen = "learn"
-            trigger_rerun()
+            if error_occurred:
+                st.session_state.screen = "start"
+                trigger_rerun()
+            else:
+                if "last_error" in st.session_state:
+                    del st.session_state.last_error
+                # Shuffle and select 10 words
+                random.shuffle(words_pool)
+                st.session_state.session_words = words_pool[:10]
+                st.session_state.current_index = 0
+                st.session_state.correct_count = 0
+                st.session_state.incorrect_words = []
+                st.session_state.show_answer = False
+                st.session_state.screen = "learn"
+                trigger_rerun()
 
 # 2. LEARN SCREEN
 elif st.session_state.screen == "learn":
