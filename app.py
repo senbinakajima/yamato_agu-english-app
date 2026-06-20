@@ -3,6 +3,7 @@ import requests
 import json
 import random
 import textwrap
+import datetime
 
 # Page Configuration
 st.set_page_config(
@@ -199,7 +200,19 @@ def fetch_words_from_notion(api_key, database_id):
                     return val if val is not None else 0
             return 0
             
+        def get_date(prop_names):
+            if isinstance(prop_names, str):
+                prop_names = [prop_names]
+            for name in prop_names:
+                prop = properties.get(name, {})
+                if prop.get("type") == "date":
+                    date_obj = prop.get("date")
+                    if date_obj:
+                        return date_obj.get("start")
+            return None
+            
         word_text = get_rich_text(["Word", "Name", "単語"])
+        next_review_prop = "NextReview" if "NextReview" in properties else ("次回学習日" if "次回学習日" in properties else "NextReview")
         
         word = {
             "id": page_id,
@@ -211,14 +224,16 @@ def fetch_words_from_notion(api_key, database_id):
             "correct_prop": "Correct" if "Correct" in properties else ("正解数" if "正解数" in properties else "Correct"),
             "incorrect_prop": "Incorrect" if "Incorrect" in properties else ("不正解数" if "不正解数" in properties else "Incorrect"),
             "correct_val": get_number(["Correct", "正解数"]),
-            "incorrect_val": get_number(["Incorrect", "不正解数"])
+            "incorrect_val": get_number(["Incorrect", "不正解数"]),
+            "next_review_prop": next_review_prop,
+            "next_review_val": get_date(["NextReview", "次回学習日"])
         }
         if word["word"]: # Skip empty pages
             words.append(word)
             
     return words
 
-def update_notion_stat(api_key, page_id, prop_name, current_val):
+def update_notion_word_status(api_key, page_id, count_prop, current_count_val, next_review_prop, next_review_date):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Notion-Version": "2022-06-28",
@@ -227,8 +242,13 @@ def update_notion_stat(api_key, page_id, prop_name, current_val):
     url = f"https://api.notion.com/v1/pages/{page_id}"
     body = {
         "properties": {
-            prop_name: {
-                "number": int(current_val) + 1
+            count_prop: {
+                "number": int(current_count_val) + 1
+            },
+            next_review_prop: {
+                "date": {
+                    "start": next_review_date
+                }
             }
         }
     }
@@ -246,6 +266,8 @@ def fetch_fallback_words():
                 w["incorrect_prop"] = "Incorrect"
                 w["correct_val"] = w.get("correct_val", 0)
                 w["incorrect_val"] = w.get("incorrect_val", 0)
+                w["next_review_prop"] = "NextReview"
+                w["next_review_val"] = w.get("next_review_val", None)
             return words
     except Exception as e:
         # Mini backup list if words.json is missing
@@ -264,6 +286,11 @@ def fetch_fallback_words():
             }
         ]
 
+# --- Notion Keys check ---
+api_key = st.secrets.get("NOTION_API_KEY")
+database_id = st.secrets.get("NOTION_DATABASE_ID")
+has_secrets = bool(api_key and database_id)
+
 # --- Session State Initialization ---
 if "screen" not in st.session_state:
     st.session_state.screen = "start"
@@ -278,12 +305,35 @@ if "incorrect_words" not in st.session_state:
 if "correct_count" not in st.session_state:
     st.session_state.correct_count = 0
 if "api_mode" not in st.session_state:
-    st.session_state.api_mode = False
+    st.session_state.api_mode = has_secrets
+if "words_pool" not in st.session_state:
+    st.session_state.words_pool = []
 
-# --- Notion Keys check ---
-api_key = st.secrets.get("NOTION_API_KEY")
-database_id = st.secrets.get("NOTION_DATABASE_ID")
-has_secrets = bool(api_key and database_id)
+# --- Load words pool if empty ---
+if not st.session_state.words_pool:
+    if st.session_state.api_mode:
+        try:
+            st.session_state.words_pool = fetch_words_from_notion(api_key, database_id)
+        except Exception as e:
+            error_detail = str(e)
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail += f"\nResponse Body: {e.response.text}"
+                except Exception:
+                    pass
+            st.session_state.last_error = f"Notion接続エラー:\n{error_detail}"
+            st.session_state.api_mode = False
+            st.session_state.words_pool = fetch_fallback_words()
+    else:
+        st.session_state.words_pool = fetch_fallback_words()
+
+# --- Filter Review Queue ---
+today_str = datetime.date.today().isoformat()
+review_queue = []
+for w in st.session_state.words_pool:
+    nr = w.get("next_review_val")
+    if not nr or nr <= today_str:
+        review_queue.append(w)
 
 # --- Screen Rendering Router ---
 
@@ -293,12 +343,22 @@ if st.session_state.screen == "start":
     st.markdown('<p class="sub-header">青山学院大学スクールカラーテーマ Notion API同期版</p>', unsafe_allow_html=True)
     
     # Render Status Panel
-    if has_secrets:
-        st.success("Notion API 認証情報が検出されました。データベース同期モードで起動可能です。 🌐")
-        st.session_state.api_mode = True
-    else:
-        st.warning("Notion API 認証情報が st.secrets に見つかりません。オフライン（words.json）モードで起動します。 📁")
-        st.session_state.api_mode = False
+    col_status, col_sync = st.columns([3, 1])
+    with col_status:
+        if has_secrets:
+            if st.session_state.api_mode:
+                st.success("Notion API 認証情報が検出されました。データベース同期中 🌐")
+            else:
+                st.warning("Notion API 認証情報が検出されましたが、オフライン動作中 📁")
+        else:
+            st.warning("Notion API 認証情報が st.secrets に見つかりません。オフライン（words.json）モード 📁")
+    with col_sync:
+        if st.button("🔄 再同期", use_container_width=True):
+            st.session_state.words_pool = []
+            if "last_error" in st.session_state:
+                del st.session_state.last_error
+            st.session_state.api_mode = has_secrets
+            trigger_rerun()
         
     # Render Last Error if exists
     if "last_error" in st.session_state and st.session_state.last_error:
@@ -306,41 +366,48 @@ if st.session_state.screen == "start":
         
     st.write("")
     
-    # Start button (Centered layout)
+    # Count review queue
+    review_needed_count = len(review_queue)
+    total_words_count = len(st.session_state.words_pool)
+    
+    st.info(f"データベース総単語数: **{total_words_count}** 問 | 今日の復習対象単語数: **{review_needed_count}** 問")
+    
+    if review_needed_count == 0:
+        st.success("🎉 現在、復習すべき単語はありません！素晴らしいペースです🎓")
+        
+    st.write("")
+    
+    # Start buttons (Centered layout)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("学習スタート (10問)", use_container_width=True, type="primary"):
-            # Load words
-            words_pool = []
-            error_occurred = False
-            if st.session_state.api_mode:
-                with st.spinner("Notionから単語を取得中..."):
-                    try:
-                        words_pool = fetch_words_from_notion(api_key, database_id)
-                        if not words_pool:
-                            st.session_state.last_error = "Notionデータベースが空であるか、正しく読み込めませんでした。"
-                            error_occurred = True
-                    except Exception as e:
-                        error_detail = str(e)
-                        if hasattr(e, 'response') and e.response is not None:
-                            try:
-                                error_detail += f"\nResponse Body: {e.response.text}"
-                            except Exception:
-                                pass
-                        st.session_state.last_error = f"Notion接続エラー:\n{error_detail}"
-                        error_occurred = True
-            else:
-                words_pool = fetch_fallback_words()
-            
-            if error_occurred:
-                st.session_state.screen = "start"
+        if review_needed_count > 0:
+            review_btn_label = f"今日の復習スタート (最大10問)"
+            if st.button(review_btn_label, use_container_width=True, type="primary"):
+                queue_copy = review_queue.copy()
+                random.shuffle(queue_copy)
+                st.session_state.session_words = queue_copy[:10]
+                st.session_state.current_index = 0
+                st.session_state.correct_count = 0
+                st.session_state.incorrect_words = []
+                st.session_state.show_answer = False
+                st.session_state.screen = "learn"
                 trigger_rerun()
-            else:
-                if "last_error" in st.session_state:
-                    del st.session_state.last_error
-                # Shuffle and select 10 words
-                random.shuffle(words_pool)
-                st.session_state.session_words = words_pool[:10]
+                
+            if st.button("全単語からランダムに10問解く", use_container_width=True):
+                pool_copy = st.session_state.words_pool.copy()
+                random.shuffle(pool_copy)
+                st.session_state.session_words = pool_copy[:10]
+                st.session_state.current_index = 0
+                st.session_state.correct_count = 0
+                st.session_state.incorrect_words = []
+                st.session_state.show_answer = False
+                st.session_state.screen = "learn"
+                trigger_rerun()
+        else:
+            if st.button("全単語からランダムに10問学習", use_container_width=True, type="primary"):
+                pool_copy = st.session_state.words_pool.copy()
+                random.shuffle(pool_copy)
+                st.session_state.session_words = pool_copy[:10]
                 st.session_state.current_index = 0
                 st.session_state.correct_count = 0
                 st.session_state.incorrect_words = []
@@ -425,11 +492,26 @@ f"""<div class="flashcard-box">
             if st.button("❌ 忘れていた", use_container_width=True):
                 st.session_state.incorrect_words.append(current_word)
                 
+                # Update memory-resident state
+                tomorrow_str = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+                for w in st.session_state.words_pool:
+                    if w["id"] == current_word["id"]:
+                        w["next_review_val"] = tomorrow_str
+                        w["incorrect_val"] = int(w.get("incorrect_val", 0)) + 1
+                        break
+                        
                 # Send API update if online database mode
                 if st.session_state.api_mode and current_word.get("id") and not current_word["id"].startswith("fallback"):
                     with st.spinner("Notionを更新中..."):
                         try:
-                            update_notion_stat(api_key, current_word["id"], current_word["incorrect_prop"], current_word["incorrect_val"])
+                            update_notion_word_status(
+                                api_key,
+                                current_word["id"],
+                                current_word["incorrect_prop"],
+                                current_word["incorrect_val"],
+                                current_word["next_review_prop"],
+                                tomorrow_str
+                            )
                         except Exception as e:
                             st.toast(f"Notion書き込みエラー: {e}")
                 
@@ -441,11 +523,26 @@ f"""<div class="flashcard-box">
             if st.button("⭕️ 覚えていた", use_container_width=True, type="primary"):
                 st.session_state.correct_count += 1
                 
+                # Update memory-resident state
+                three_days_later_str = (datetime.date.today() + datetime.timedelta(days=3)).isoformat()
+                for w in st.session_state.words_pool:
+                    if w["id"] == current_word["id"]:
+                        w["next_review_val"] = three_days_later_str
+                        w["correct_val"] = int(w.get("correct_val", 0)) + 1
+                        break
+                        
                 # Send API update if online database mode
                 if st.session_state.api_mode and current_word.get("id") and not current_word["id"].startswith("fallback"):
                     with st.spinner("Notionを更新中..."):
                         try:
-                            update_notion_stat(api_key, current_word["id"], current_word["correct_prop"], current_word["correct_val"])
+                            update_notion_word_status(
+                                api_key,
+                                current_word["id"],
+                                current_word["correct_prop"],
+                                current_word["correct_val"],
+                                current_word["next_review_prop"],
+                                three_days_later_str
+                            )
                         except Exception as e:
                             st.toast(f"Notion書き込みエラー: {e}")
                             
